@@ -1,1 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<title>Pepper Sizzle Stone</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+/* Leaflet 核心樣式（內嵌備援：外部 CSS 被擋時仍可正常顯示） */
+.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-layer{position:absolute;left:0;top:0}
+.leaflet-container{overflow:hidden;background:#ddd;font-size:12px}
+.leaflet-tile,.leaflet-marker-icon{user-select:none;-webkit-user-drag:none}
+.leaflet-tile{visibility:hidden}.leaflet-tile-loaded{visibility:inherit}
+.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}
+.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-tile{max-width:none!important;max-height:none!important;width:auto;padding:0}
+.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}
+.leaflet-control{position:relative;z-index:800;pointer-events:auto;float:left;clear:both}
+.leaflet-top,.leaflet-bottom{position:absolute;z-index:1000;pointer-events:none}
+.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}
+.leaflet-right .leaflet-control{float:right;margin-right:10px}.leaflet-left .leaflet-control{margin-left:10px}
+.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}
+.leaflet-zoom-animated{transform-origin:0 0}
+.leaflet-zoom-anim .leaflet-zoom-animated{transition:transform .25s cubic-bezier(0,0,.25,1)}
+.leaflet-zoom-anim .leaflet-tile,.leaflet-pan-anim .leaflet-tile{transition:none}
+.leaflet-interactive{cursor:pointer}
+.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}
+.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px;background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.4)}
+.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px}
+.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-left:-20px;overflow:hidden;pointer-events:none}
+.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;transform:rotate(45deg);background:#fff;box-shadow:0 3px 14px rgba(0,0,0,.4)}
+.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;padding:4px 4px 0 0;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;text-align:center}
+.leaflet-tooltip{position:absolute;padding:6px;background:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.leaflet-control-layers{background:#fff;padding:6px 10px;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.4);color:#333}
+.leaflet-control-layers-toggle{display:none}.leaflet-control-layers label{display:block}
+.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}
+.leaflet-bar a{background:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000;font:bold 18px monospace}
+.leaflet-bar a:first-child{border-radius:4px 4px 0 0}.leaflet-bar a:last-child{border-radius:0 0 4px 4px;border-bottom:none}
+.leaflet-control-attribution{background:rgba(255,255,255,.8);padding:0 5px;font-size:11px}
+</style>
+<style>
+  body{font-family:-apple-system,"Segoe UI","Noto Sans TC",Arial,sans-serif;margin:0;padding:20px;background:#f4f4f9;color:#222}
+  h2{margin:0 0 4px} p.sub{color:#666;margin:0 0 12px}
+  #map{width:100%;height:700px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+  .pin{display:flex;align-items:center;gap:4px;transform:translate(-14px,-14px);white-space:nowrap}
+  .pin .n{flex:none;width:28px;height:28px;border-radius:50%;background:#1d3557;color:#fff;font-weight:700;font-size:13px;
+    display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+  .pin .nm{background:rgba(255,255,255,.92);padding:1px 6px;border-radius:4px;font-size:12px;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .leaflet-popup-content{margin:12px 14px;width:330px!important}
+  .pp h3{margin:0;font-size:16px} .pp .meta{color:#666;font-size:12px;margin:2px 0 8px}
+  .pp h4{margin:10px 0 4px;font-size:13px;color:#333}
+  .row{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:12px}
+  .chip{width:50px;flex:none;font-weight:600}
+  .chip i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+  .track{flex:1;background:#eceef2;border-radius:4px;height:14px;display:flex;overflow:hidden}
+  .track b{display:block;height:100%}
+  .val{width:92px;flex:none;text-align:right;color:#333}
+  .legend{display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:#555;margin-top:4px}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:3px}
+  .leaflet-bottom .ranklist{margin-bottom:44px}
+  .ranklist{font-size:11px!important;line-height:1.45!important;background:#fff;padding:8px 10px;border-radius:6px;font-size:12px;line-height:1.6;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+</style>
+</head>
+<body>
+<h2>Pepper Sizzle Stone</h2>
+<p class="sub">Top Market Locations Map (14 Locations)</p>
+<div id="map"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>if(!window.L){document.write('<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"><\/script>');}</script>
+<script>if(!window.L){document.write('<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"><\/script>');}</script>
+<script>
+var map = L.map('map').setView([33.87538227985897,-118.10302634285715], 10);
+var ESRI_ATTR='Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, and the GIS User Community';
+var providers=[
+  {url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',opt:{maxZoom:19,attribution:ESRI_ATTR}},
+  {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',opt:{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}},
+  {url:'https://tile.openstreetmap.org/{z}/{x}/{y}.png',opt:{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}}
+];
+var pi=0, baseLayer=null, errCount=0, okCount=0;
+function useProvider(i){
+  if(baseLayer) map.removeLayer(baseLayer);
+  pi=i; errCount=0; okCount=0;
+  baseLayer=L.tileLayer(providers[i].url,providers[i].opt).addTo(map);
+  baseLayer.bringToBack();
+  baseLayer.on('tileload',function(){okCount++});
+  baseLayer.on('tileerror',function(){
+    errCount++;
+    if(okCount===0 && errCount===4){
+      if(pi+1<providers.length) useProvider(pi+1); else showNotice();
+    }
+  });
+}
+function showNotice(){
+  var n=document.createElement('div');
+  n.style.cssText='position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:1200;background:#fff3cd;border:1px solid #e0b000;padding:6px 12px;border-radius:6px;font-size:13px';
+  n.textContent='底圖圖磚被目前環境擋住了（圓圈與資料正常）。請下載檔案後用 Chrome / Safari 直接開啟即可看到地圖。';
+  document.getElementById('map').appendChild(n);
+}
+useProvider(0);
+
+// d = [1mi, 2mi, 3mi]; each = [正餐總數, 亞洲, 西式, 其他, 混合, 未知, 直接競品, 替代競品]
+var locations = [
+{lat:34.03442367018253,lon:-118.452676,geoid:"06037267600",county:"Los Angeles County",score:85.39768638130776,name:"West LA / Sawtelle",sample:825,
+ d:[[129,62,19,13,1,34,10,20],[400,126,113,32,3,126,16,123],[750,204,218,72,6,250,27,237]]},
+{lat:34.05269972474409,lon:-118.3949632,geoid:"06037269100",county:"Los Angeles County",score:84.50061334,name:"Century City / Beverly Hills",sample:829,
+ d:[[88,22,24,5,0,37,1,26],[404,75,112,30,3,184,11,118],[770,172,206,57,11,324,33,233]]},
+{lat:34.08367163326726,lon:-118.355038,geoid:"06037192002",county:"Los Angeles County",score:79.89265336214731,name:"Fairfax / Hollywood",sample:873,
+ d:[[149,28,42,12,3,64,5,53],[512,107,145,38,7,215,26,166],[807,202,198,55,9,343,33,229]]},
+{lat:33.69060504107194,lon:-117.8164793,geoid:"06059052530",county:"Orange County",score:79.16225244620226,name:"Irvine / Tustin 交界",sample:517,
+ d:[[85,29,22,6,0,28,10,26],[192,59,42,12,3,76,16,52],[474,151,103,26,6,188,34,116]]},
+{lat:33.690590733648634,lon:-117.877216,geoid:"06059063909",county:"Orange County",score:77.36905519099543,name:"Costa Mesa (South Coast Plaza)",sample:767,
+ d:[[129,44,23,4,3,55,12,26],[386,88,75,41,4,178,16,83],[713,157,142,89,5,320,31,160]]},
+{lat:34.162312514893884,lon:-118.365879,geoid:"06037125501",county:"Los Angeles County",score:75.91656797,name:"Burbank / Toluca Lake",sample:720,
+ d:[[110,26,24,13,1,46,6,28],[407,89,108,41,4,165,11,118],[649,121,170,67,8,283,14,185]]},
+{lat:33.64709372801023,lon:-117.8907428,geoid:"06059063009",county:"Orange County",score:74.77543334285983,name:"Newport Beach 北 / Costa Mesa 南",sample:587,
+ d:[[14,3,3,2,0,6,0,3],[224,43,56,28,3,94,4,65],[534,119,129,59,7,220,24,149]]},
+{lat:33.66120671502255,lon:-117.7612701,geoid:"06059052518",county:"Orange County",score:73.72732341802036,name:"Irvine 東南",sample:236,
+ d:[[28,5,8,2,0,13,2,10],[146,48,38,5,0,55,10,40],[202,71,51,7,1,72,17,55]]},
+{lat:33.840386550133104,lon:-118.3491282,geoid:"06037650604",county:"Los Angeles County",score:72.99525495,name:"Torrance (Del Amo)",sample:667,
+ d:[[90,29,22,5,1,33,7,23],[209,59,53,11,2,84,8,56],[622,183,149,50,9,231,30,163]]},
+{lat:33.735566497143424,lon:-117.8114667,geoid:"06059075507",county:"Orange County",score:72.85090000867955,name:"Tustin",sample:495,
+ d:[[109,47,19,14,2,27,8,23],[235,72,50,33,3,77,9,57],[461,128,90,65,6,172,21,103]]},
+{lat:33.78289084537018,lon:-117.8690812,geoid:"06059076001",county:"Orange County",score:72.18594881038022,name:"Orange / Garden Grove",sample:737,
+ d:[[119,18,28,20,2,51,4,32],[304,41,74,59,2,128,8,81],[682,107,168,134,3,270,23,184]]},
+{lat:34.056755277100564,lon:-118.3134642,geoid:"06037212620",county:"Los Angeles County",score:70.68948771,name:"Koreatown",sample:1002,
+ d:[[190,121,8,7,4,50,13,15],[555,244,57,50,6,198,32,69],[951,318,127,104,12,390,48,156]]},
+{lat:33.69112788,lon:-117.9309246,geoid:"06059063805",county:"Orange County",score:70.40514357884314,name:"Fountain Valley",sample:547,
+ d:[[46,7,16,4,0,19,1,18],[230,66,59,20,2,83,17,65],[504,152,122,50,4,176,36,136]]},
+{lat:34.12602110743709,lon:-118.2540395,geoid:"06037302505",county:"Los Angeles County",score:69.73750435324267,name:"Eagle Rock",sample:603,
+ d:[[111,16,33,18,0,44,0,33],[352,56,88,38,1,169,9,92],[554,97,137,55,4,261,14,148]]}
+];
+
+var MILE = 1609.34;
+var RINGS = [{mi:1,color:'#d62828',fo:.14},{mi:2,color:'#f77f00',fo:.08},{mi:3,color:'#1d77c9',fo:.05}];
+var TYPES = [
+  {k:1,label:'亞洲',color:'#d1495b'},{k:2,label:'西式',color:'#00798c'},
+  {k:3,label:'其他',color:'#edae49'},{k:4,label:'混合',color:'#7b6d8d'},{k:5,label:'未知',color:'#c4c9d1'}
+];
+function pct(a,b){return b?(a/b*100).toFixed(1):'0.0'}
+
+function popupHTML(i){
+  var L0=locations[i], h='<div class="pp"><h3>#'+(i+1)+' '+L0.name+'</h3>'+
+    '<div class="meta">'+L0.county+' ・ GEOID '+L0.geoid+'<br>市場得分 <b>'+L0.score.toFixed(2)+'</b> ・ 搜尋樣本 '+L0.sample+' 家</div>';
+  h+='<h4>① 亞洲餐廳占比（各範圍）</h4>';
+  RINGS.forEach(function(r,j){
+    var d=L0.d[j], p=d[1]/d[0]*100;
+    h+='<div class="row"><span class="chip"><i style="background:'+r.color+'"></i>'+r.mi+' mi</span>'+
+       '<span class="track"><b style="width:'+p+'%;background:'+r.color+'"></b></span>'+
+       '<span class="val"><b>'+p.toFixed(1)+'%</b> ('+d[1]+'/'+d[0]+')</span></div>';
+  });
+  h+='<h4>② 餐廳類型組成</h4>';
+  RINGS.forEach(function(r,j){
+    var d=L0.d[j];
+    h+='<div class="row"><span class="chip"><i style="background:'+r.color+'"></i>'+r.mi+' mi</span><span class="track">';
+    TYPES.forEach(function(t){h+='<b title="'+t.label+' '+d[t.k]+' 家" style="width:'+(d[t.k]/d[0]*100)+'%;background:'+t.color+'"></b>'});
+    h+='</span><span class="val">共 '+d[0]+' 家</span></div>';
+  });
+  h+='<div class="legend">'+TYPES.map(function(t){return '<span><i style="background:'+t.color+'"></i>'+t.label+'</span>'}).join('')+'</div>';
+  var mx=0; L0.d.forEach(function(d){mx=Math.max(mx,d[6],d[7])});
+  h+='<h4>③ 競品家數</h4>';
+  RINGS.forEach(function(r,j){
+    var d=L0.d[j];
+    h+='<div class="row"><span class="chip"><i style="background:'+r.color+'"></i>'+r.mi+' mi</span>'+
+      '<span style="flex:1"><span class="track" style="margin-bottom:2px"><b style="width:'+(d[6]/mx*100)+'%;background:#9d0208"></b></span>'+
+      '<span class="track"><b style="width:'+(d[7]/mx*100)+'%;background:#faa307"></b></span></span>'+
+      '<span class="val">直接 <b>'+d[6]+'</b> / 替代 <b>'+d[7]+'</b></span></div>';
+  });
+  h+='<div class="legend"><span><i style="background:#9d0208"></i>直接競品</span><span><i style="background:#faa307"></i>替代競品</span></div></div>';
+  return h;
+}
+
+var groups = {};
+RINGS.slice().reverse().forEach(function(r){groups[r.mi]=L.layerGroup().addTo(map)}); // 3 → 1, 小圈在上層
+var markers = [], all = [];
+
+locations.forEach(function(loc,i){
+  var c=[loc.lat,loc.lon];
+  var marker=L.marker(c,{
+    icon:L.divIcon({className:'',iconSize:[0,0],
+      html:'<div class="pin"><span class="n">'+(i+1)+'</span><span class="nm">'+loc.name+'</span></div>'}),
+    zIndexOffset:1000
+  }).addTo(map);
+  marker.bindPopup(popupHTML(i),{maxWidth:360,autoPanPadding:[20,20]});
+  marker.bindTooltip('#'+(i+1)+' '+loc.name+'（Score '+loc.score.toFixed(2)+'）',{direction:'top',offset:[0,-16]});
+  markers.push(marker);
+
+  RINGS.slice().reverse().forEach(function(r){
+    var j=r.mi-1, d=loc.d[j];
+    var circ=L.circle(c,{radius:r.mi*MILE,color:r.color,weight:2,opacity:.85,fillColor:r.color,fillOpacity:r.fo})
+      .addTo(groups[r.mi]);
+    circ.bindTooltip('<b>#'+(i+1)+' '+loc.name+'</b><br>'+r.mi+' 英里：正餐 '+d[0]+' 家<br>亞洲 '+pct(d[1],d[0])+'%（'+d[1]+' 家）<br>直接競品 '+d[6]+'／替代 '+d[7],{sticky:true});
+    circ.on('mouseover',function(){circ.setStyle({weight:4,fillOpacity:r.fo+.1})});
+    circ.on('mouseout',function(){circ.setStyle({weight:2,fillOpacity:r.fo})});
+    circ.on('click',function(){marker.openPopup()});
+    all.push(circ);
+  });
+});
+
+map.fitBounds(L.featureGroup(all).getBounds().pad(0.02));
+
+L.control.layers(null,{
+  '<span style="color:#d62828">●</span> 1 英里':groups[1],
+  '<span style="color:#f77f00">●</span> 2 英里':groups[2],
+  '<span style="color:#1d77c9">●</span> 3 英里':groups[3]
+},{collapsed:false}).addTo(map);
+
+// 排名圖例
+var rank=L.control({position:'bottomleft'});
+rank.onAdd=function(){
+  var div=L.DomUtil.create('div','ranklist');
+  div.innerHTML='<b>排名</b><br>'+locations.map(function(l,i){return (i+1)+'. '+l.name}).join('<br>');
+  L.DomEvent.disableClickPropagation(div); return div;
+};
+rank.addTo(map);
+</script>
+</body>
+</html>
 
